@@ -12,7 +12,7 @@ from PIL import Image
 st.set_page_config(page_title="Prédiction du prix des voitures", layout="wide")
 
 # === Chargement du logo ===
-st.image("intelligence-artificielle-school-logo.png", use_container_width=True)
+st.image("28804.jpg", use_container_width=True)
 
 # === Titre de l'application ===
 st.title("🚗 Prédiction du Prix des Voitures")
