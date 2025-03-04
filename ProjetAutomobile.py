@@ -80,7 +80,7 @@ for name, model in models.items():
     
 
 best_model = min(results, key=results.get)
-st.success(f"✅ Modèle sélectionné : {best_model}")
+st.success(f"✅ Le meilleur modèle est : {best_model}")
 
 # Interface Streamlit pour prédiction
 st.sidebar.header("🎯 Prédiction du prix")
