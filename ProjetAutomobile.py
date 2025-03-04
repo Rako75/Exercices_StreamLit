@@ -19,7 +19,7 @@ st.title("🚗 Prédiction du Prix des Voitures")
 
 # === 1️⃣ Importer le jeu de données ===
 st.subheader("📂 Chargement des données")
-df = pd.read_csv("automobile.csv")
+df = pd.read_csv("automobile_data.csv")
 st.write("Aperçu des données :", df.head())
 
 # === 2️⃣ Nettoyage des données ===
