@@ -76,8 +76,7 @@ for name, model in models.items():
     results[name] = mae
     st.write(f"📉 **MAE {name} :** {mae:.2f}")
     
-# Affichage des métriques détaillées
-    st.write(f"📊 **Évaluation du modèle {name}:**")
+
     
 
 best_model = min(results, key=results.get)
