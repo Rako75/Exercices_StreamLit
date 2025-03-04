@@ -23,7 +23,7 @@ df = pd.read_csv("automobile_data.csv", sep=";")
 df = df.drop_duplicates()
 
 # Convertir les colonnes numériques
-numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
+numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "compression-ratio", "city-mpg", "highway-mpg", "price"]
 for col in numeric_cols:
     df[col] = pd.to_numeric(df[col], errors="coerce")  # Convertir en nombre, gérer erreurs
 
