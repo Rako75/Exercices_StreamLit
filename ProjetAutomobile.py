@@ -26,11 +26,6 @@ numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
 for col in numeric_cols:
     df[col] = pd.to_numeric(df[col], errors="coerce")
 
-# Remplacer les valeurs NaN par la moyenne
-df.fillna(df.mean(), inplace=True)
-
-# Supprimer les lignes avec un prix manquant
-df = df.dropna(subset=["price"])
 
 st.write(f"✅ Données nettoyées ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
 
