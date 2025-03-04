@@ -22,16 +22,13 @@ df = pd.read_csv("automobile_data.csv", sep=";")
 df = df.drop_duplicates()
 
 # Convertir certaines colonnes en numérique
-numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
+numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "price"]
 df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
 
-# Suppression des valeurs NaN après conversion
+# Supprimer toutes les lignes contenant des NaN
 df = df.dropna()
 
-# Supprimer les doublons après nettoyage
-df = df.drop_duplicates()
-
-st.write(f"✅ Données nettoyées ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
+st.write(f"✅ Données après nettoyage final : {df.shape[0]} lignes, {df.shape[1]} colonnes")
 
 # === 2️⃣ Visualisation des données ===
 st.subheader("📊 Distribution des prix")
@@ -48,21 +45,17 @@ st.subheader("🛠️ Préparation des données")
 df = pd.get_dummies(df, columns=["body-style", "drive-wheels", "engine-location", 
                                  "engine-type", "fuel-system", "num-of-cylinders"], drop_first=True)
 
-# Suppression des NaN après encodage
+# Vérification finale des NaN après encodage
 df = df.dropna()
-
-# Supprimer les doublons après encodage
-df = df.drop_duplicates()
 
 # Séparer la cible et les features
 X = df.drop(columns=["price"])
 y = df["price"]
 
-# Vérification finale des NaN avant le split
-X = X.dropna()
-
-# Supprimer les doublons après séparation des features/cible
-X, y = X.loc[~X.index.duplicated(keep='first')], y.loc[~y.index.duplicated(keep='first')]
+# Vérification finale pour s'assurer qu'il n'y a **aucun** NaN dans X et y
+if X.isna().sum().sum() > 0 or y.isna().sum() > 0:
+    st.error("❌ Il reste des valeurs NaN ! Vérifiez le prétraitement.")
+    st.stop()
 
 # Division en train/test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -115,4 +108,4 @@ if st.sidebar.button("🔍 Prédire le prix"):
 
 # === Footer ===
 st.write("---")
-st.write("🚀 **Projet Machine Learning - Streamlit** | Dé
+st.write("🚀 **Projet Machine Learning - Streamlit** | Développé par [Alex Rakotomalala]")
