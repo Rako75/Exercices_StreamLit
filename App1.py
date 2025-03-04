@@ -14,7 +14,7 @@ st.write(data.head())
 # Histogramme avec couleur personnalisée
 st.write("### Histogramme")
 fig, ax = plt.subplots()
-ax.hist(data["Distribution_Normale"], bins=30, color="skyblue", edgecolor="black")
+ax.hist(data["Distribution_Normale"], bins=30, color="chartreuse", edgecolor="black")
 st.pyplot(fig)
 
 # Ajout d'un boxplot avec un titre
