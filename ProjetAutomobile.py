@@ -56,7 +56,7 @@ sns.histplot(df["Prix"], bins=30, kde=True, ax=ax)
 st.pyplot(fig)
 
 # Préparation des données
-df = pd.get_dummies(df, drop_first=True)
+df = pd.get_dummies(df, columns=["Style de carrosserie", "Roues motrices", "Emplacement moteur", "Type de moteur", "Système de carburant", "Nombre de cylindres"], drop_first=True)
 X, y = df.drop(columns=["Prix"], errors='ignore'), df["Prix"]
 
 # Vérifier si X et y ne sont pas vides
@@ -71,9 +71,14 @@ models = {"Régression Linéaire": LinearRegression(), "Random Forest": RandomFo
 results = {}
 for name, model in models.items():
     model.fit(X_train, y_train)
-    mae = mean_absolute_error(y_test, model.predict(X_test))
+    y_pred = model.predict(X_test)
+    mae = mean_absolute_error(y_test, y_pred)
     results[name] = mae
     st.write(f"📉 **MAE {name} :** {mae:.2f}")
+    
+# Affichage des métriques détaillées
+    st.write(f"📊 **Évaluation du modèle {name}:**")
+    st.write(f"- MAE : {mean_absolute_error(y_test, y_pred):.2f}")
 
 best_model = min(results, key=results.get)
 st.success(f"✅ Modèle sélectionné : {best_model}")
