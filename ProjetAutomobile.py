@@ -7,90 +7,40 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 
-# === Configuration de la page Streamlit ===
 st.set_page_config(page_title="Prédiction du Prix des Voitures", layout="wide")
-
 st.title("🚗 Prédiction du Prix des Voitures")
 
-# === 1️⃣ Importation et Nettoyage des données ===
-st.subheader("📂 Chargement et nettoyage des données")
-
-# Charger les données
-df = pd.read_csv("automobile_data.csv", sep=";")
-
-# Supprimer les doublons
-df = df.drop_duplicates()
-
-# Convertir certaines colonnes en numérique
+# Chargement et nettoyage des données
+df = pd.read_csv("automobile_data.csv", sep=";").drop_duplicates()
 numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "price"]
 df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
+df.dropna(inplace=True)
+st.write(f"✅ Données nettoyées : {df.shape[0]} lignes, {df.shape[1]} colonnes")
 
-# Supprimer toutes les lignes contenant des NaN
-df = df.dropna()
-
-st.write(f"✅ Données après nettoyage final : {df.shape[0]} lignes, {df.shape[1]} colonnes")
-
-# === 2️⃣ Visualisation des données ===
-st.subheader("📊 Distribution des prix")
+# Visualisation des prix
 fig, ax = plt.subplots(figsize=(8, 4))
 sns.histplot(df["price"], bins=30, kde=True, ax=ax)
-ax.set_title("Distribution des prix des voitures")
 st.pyplot(fig)
 
-# === 3️⃣ Préparation des données pour le Machine Learning ===
-st.subheader("🛠️ Préparation des données")
-
-df = pd.get_dummies(df, columns=["body-style", "drive-wheels", "engine-location", 
-                                 "engine-type", "fuel-system", "num-of-cylinders"], drop_first=True)
-
-df = df.dropna()
-
-X = df.drop(columns=["price"])
-y = df["price"]
-
-if X.isna().sum().sum() > 0 or y.isna().sum() > 0:
-    st.error("❌ Il reste des valeurs NaN ! Vérifiez le prétraitement.")
-    st.stop()
-
+# Préparation des données
+df = pd.get_dummies(df, drop_first=True)
+X, y = df.drop(columns=["price"]), df["price"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-st.write("✅ Données prêtes pour l'entraînement")
 
-# === 4️⃣ Entraînement des modèles ===
-st.subheader("🤖 Entraînement des modèles")
+# Entraînement des modèles
+models = {"Régression Linéaire": LinearRegression(), "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42)}
+results = {}
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    results[name] = mean_absolute_error(y_test, model.predict(X_test))
 
-lr = LinearRegression()
-lr.fit(X_train, y_train)
-y_pred_lr = lr.predict(X_test)
+best_model = min(results, key=results.get)
+st.success(f"✅ Modèle sélectionné : {best_model}")
 
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(X_train, y_train)
-y_pred_rf = rf.predict(X_test)
-
-mae_lr = mean_absolute_error(y_test, y_pred_lr)
-mae_rf = mean_absolute_error(y_test, y_pred_rf)
-
-st.write(f"📉 **MAE Régression Linéaire :** {mae_lr:.2f}")
-st.write(f"🌲 **MAE Random Forest :** {mae_rf:.2f}")
-
-best_model = rf if mae_rf < mae_lr else lr
-st.success(f"✅ **Modèle sélectionné : {'Random Forest' if best_model == rf else 'Régression Linéaire'}**")
-
-# === 6️⃣ Interface Streamlit pour prédictions ===
-st.sidebar.header("🎯 Prédiction du prix d'une voiture")
-
-wheel_base = st.sidebar.number_input("Empattement (wheel-base)", min_value=80.0, max_value=150.0, value=100.0)
-length = st.sidebar.number_input("Longueur (length)", min_value=140.0, max_value=220.0, value=180.0)
-width = st.sidebar.number_input("Largeur (width)", min_value=50.0, max_value=100.0, value=60.0)
-height = st.sidebar.number_input("Hauteur (height)", min_value=40.0, max_value=80.0, value=55.0)
-curb_weight = st.sidebar.number_input("Poids à vide (curb-weight)", min_value=500, max_value=5000, value=2500)
-engine_size = st.sidebar.number_input("Taille moteur (engine-size)", min_value=50, max_value=500, value=150)
-
-input_data = pd.DataFrame([[wheel_base, length, width, height, curb_weight, engine_size]],
-                          columns=["wheel-base", "length", "width", "height", "curb-weight", "engine-size"])
-
-if st.sidebar.button("🔍 Prédire le prix"):
-    prediction = best_model.predict(input_data)
-    st.sidebar.success(f"💰 Prix estimé : {prediction[0]:,.2f} €")
-
-st.write("---")
-st.write("🚀 **Projet Machine Learning - Streamlit**")
+# Interface Streamlit pour prédiction
+st.sidebar.header("🎯 Prédiction du prix")
+inputs = {col: st.sidebar.number_input(col, value=df[col].mean()) for col in X.columns}
+if st.sidebar.button("🔍 Prédire"):
+    model = models[best_model]
+    prediction = model.predict(pd.DataFrame([inputs]))[0]
+    st.sidebar.success(f"💰 Prix estimé : {prediction:,.2f} €")
