@@ -25,16 +25,10 @@ df = df.drop_duplicates()
 # Convertir les colonnes numériques
 numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "compression-ratio", "city-mpg", "highway-mpg", "price"]
 for col in numeric_cols:
-    df[col] = pd.to_numeric(df[col], errors="coerce")  # Convertir en nombre, gérer erreurs
+    df[col] = pd.to_numeric(df[col], errors="coerce")
 
-# Supprimer les lignes où le prix est manquant
-df = df.dropna(subset=["price"])
-
-# Remplacer les autres valeurs NaN par la médiane de chaque colonne
-df.fillna(df.median(numeric_only=True), inplace=True)
-
-# Vérifier s'il y a encore des valeurs infinies
-df.replace([float("inf"), float("-inf")], df.median(numeric_only=True), inplace=True)
+# Supprimer toutes les lignes contenant des valeurs manquantes
+df = df.dropna()
 
 st.write(f"✅ Données nettoyées ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
 
@@ -52,6 +46,9 @@ st.subheader("🛠️ Préparation des données")
 # Encodage des variables catégorielles
 df = pd.get_dummies(df, columns=["body-style", "drive-wheels", "engine-location", 
                                  "engine-type", "fuel-system", "num-of-cylinders"], drop_first=True)
+
+# Supprimer à nouveau les lignes contenant des NaN après encodage
+df = df.dropna()
 
 # Séparer la cible et les features
 X = df.drop(columns=["price"])
