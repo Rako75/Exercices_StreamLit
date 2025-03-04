@@ -38,9 +38,16 @@ column_translation = {
 }
 df.rename(columns=column_translation, inplace=True)
 
-# Conversion en numérique
-df[list(column_translation.values())] = df[list(column_translation.values())].apply(pd.to_numeric, errors="coerce")
+# Conversion en numérique uniquement pour certaines colonnes
+numeric_cols = ["Alésage", "Course", "Puissance", "Régime max"]
+df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
 df.dropna(inplace=True)
+
+# Vérifier la taille après nettoyage
+if df.empty:
+    st.error("❌ Aucune donnée après nettoyage. Vérifiez le fichier source.")
+    st.stop()
+
 st.write(f"✅ Données nettoyées : {df.shape[0]} lignes, {df.shape[1]} colonnes")
 
 # Visualisation des prix
@@ -50,7 +57,13 @@ st.pyplot(fig)
 
 # Préparation des données
 df = pd.get_dummies(df, drop_first=True)
-X, y = df.drop(columns=["Prix"]), df["Prix"]
+X, y = df.drop(columns=["Prix"], errors='ignore'), df["Prix"]
+
+# Vérifier si X et y ne sont pas vides
+if X.empty or y.empty:
+    st.error("❌ Impossible d'entraîner les modèles : pas de données disponibles après nettoyage.")
+    st.stop()
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Entraînement des modèles
@@ -67,7 +80,7 @@ st.success(f"✅ Modèle sélectionné : {best_model}")
 
 # Interface Streamlit pour prédiction
 st.sidebar.header("🎯 Prédiction du prix")
-inputs = {col: st.sidebar.number_input(col, value=df[col].mean()) for col in X.columns}
+inputs = {col: st.sidebar.number_input(col, value=df[col].mean() if not df[col].isna().all() else 0) for col in X.columns}
 if st.sidebar.button("🔍 Prédire"):
     model = models[best_model]
     prediction = model.predict(pd.DataFrame([inputs]))[0]
