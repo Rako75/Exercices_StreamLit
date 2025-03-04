@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 
 # === Configuration de la page Streamlit ===
-st.set_page_config(page_title="Prédiction du Prix des Voitures", layout="wide")
+st.set_page_config(page_title="🚗 Prédiction du Prix des Voitures", layout="wide")
 
 st.title("🚗 Prédiction du Prix des Voitures")
 
@@ -21,11 +21,16 @@ df = pd.read_csv("automobile_data.csv", sep=";")
 # Supprimer les doublons
 df = df.drop_duplicates()
 
-# Convertir les colonnes mal typées en numérique
-numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
+# Convertir les colonnes numériques
+numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "price"]
 for col in numeric_cols:
-    df[col] = pd.to_numeric(df[col], errors="coerce")
+    df[col] = pd.to_numeric(df[col], errors="coerce")  # Convertir en nombre, gérer erreurs
 
+# Supprimer les lignes où le prix est manquant
+df = df.dropna(subset=["price"])
+
+# Vérifier s'il y a encore des valeurs infinies
+df.replace([float("inf"), float("-inf")], df.median(numeric_only=True), inplace=True)
 
 st.write(f"✅ Données nettoyées ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
 
@@ -50,6 +55,10 @@ y = df["price"]
 
 # Division en train/test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Vérifier les valeurs nulles après la division
+X_train.dropna(inplace=True)
+y_train.dropna(inplace=True)
 
 st.write("✅ Données prêtes pour l'entraînement")
 
@@ -92,6 +101,11 @@ engine_size = st.sidebar.number_input("Taille moteur (engine-size)", min_value=5
 input_data = pd.DataFrame([[wheel_base, length, width, height, curb_weight, engine_size]],
                           columns=["wheel-base", "length", "width", "height", "curb-weight", "engine-size"])
 
+# Vérifier si les colonnes encodées sont dans le modèle
+missing_cols = [col for col in X.columns if col not in input_data.columns]
+for col in missing_cols:
+    input_data[col] = 0  # Ajouter des colonnes manquantes avec 0
+
 # Prédiction du prix
 if st.sidebar.button("🔍 Prédire le prix"):
     prediction = best_model.predict(input_data)
@@ -99,4 +113,4 @@ if st.sidebar.button("🔍 Prédire le prix"):
 
 # === Footer ===
 st.write("---")
-st.write("🚀 **Projet Machine Learning - Streamlit** | Développé par [Alex Rakotomalala]")
+st.write("🚀 **Projet Machine Learning - Streamlit** | Développé avec ❤️ par Alex Rakotomalala")
