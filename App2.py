@@ -10,4 +10,4 @@ if nom:
     st.write(f"Bienvenue, {nom} ! 😊")
 
 # Affichage d'une image
-st.image("image.jpg", caption="Bienvenue sur mon application !", use_column_width=True)
+st.image("intelligence-artificielle-school-logo.png", caption="Bienvenue sur mon application !", use_column_width=True)
