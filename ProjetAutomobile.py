@@ -23,9 +23,13 @@ df = pd.read_csv("automobile_data.csv", sep=";")
 df = df.drop_duplicates()
 
 # Convertir les colonnes numériques
-numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "compression-ratio", "city-mpg", "highway-mpg", "price"]
+numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
 for col in numeric_cols:
     df[col] = pd.to_numeric(df[col], errors="coerce")
+
+df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")  # Convertit en numérique
+df = df.dropna()  # Supprime les lignes contenant des NaN
+
 
 # Supprimer toutes les lignes contenant des valeurs manquantes
 df = df.dropna()
