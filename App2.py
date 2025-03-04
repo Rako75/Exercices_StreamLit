@@ -12,7 +12,7 @@ if nom:
 
 # Ouvrir et afficher l'image avec Pillow pour éviter les erreurs
 try:
-    image = Image.open("intelligence-artificielle-school-logo.png")
+    image = Image.open("wallpapersden.com_black-sphere-4k_3584x2048.jpg")
     st.image(image, caption="Bienvenue sur mon application !", use_container_width=True)
 except Exception as e:
     st.error(f"Erreur lors du chargement de l'image : {e}")
