@@ -78,7 +78,7 @@ for name, model in models.items():
     
 # Affichage des métriques détaillées
     st.write(f"📊 **Évaluation du modèle {name}:**")
-    st.write(f"- MAE : {mean_absolute_error(y_test, y_pred):.2f}")
+    
 
 best_model = min(results, key=results.get)
 st.success(f"✅ Modèle sélectionné : {best_model}")
