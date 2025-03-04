@@ -28,11 +28,9 @@ for col in numeric_cols:
     df[col] = pd.to_numeric(df[col], errors="coerce")
 
 df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")  # Convertit en numérique
+
 df = df.dropna()  # Supprime les lignes contenant des NaN
 
-
-# Supprimer toutes les lignes contenant des valeurs manquantes
-df = df.dropna()
 
 st.write(f"✅ Données nettoyées ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
 
@@ -51,12 +49,15 @@ st.subheader("🛠️ Préparation des données")
 df = pd.get_dummies(df, columns=["body-style", "drive-wheels", "engine-location", 
                                  "engine-type", "fuel-system", "num-of-cylinders"], drop_first=True)
 
-# Supprimer à nouveau les lignes contenant des NaN après encodage
-df = df.dropna()
-
-# Séparer la cible et les features
+# Vérification et suppression des valeurs NaN
+df = df.dropna()  # Supprime toutes les lignes contenant encore des NaN
 X = df.drop(columns=["price"])
 y = df["price"]
+
+# Vérification finale avant entraînement
+print("Nombre de valeurs manquantes après traitement final :")
+print(X.isna().sum())
+
 
 # Normalisation des données
 scaler = StandardScaler()
