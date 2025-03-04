@@ -5,6 +5,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error
 
 # === Configuration de la page Streamlit ===
@@ -22,12 +23,15 @@ df = pd.read_csv("automobile_data.csv", sep=";")
 df = df.drop_duplicates()
 
 # Convertir les colonnes numériques
-numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm", "price"]
+numeric_cols = ["bore", "stroke", "horsepower", "peak-rpm"]
 for col in numeric_cols:
     df[col] = pd.to_numeric(df[col], errors="coerce")  # Convertir en nombre, gérer erreurs
 
 # Supprimer les lignes où le prix est manquant
 df = df.dropna(subset=["price"])
+
+# Remplacer les autres valeurs NaN par la médiane de chaque colonne
+df.fillna(df.median(numeric_only=True), inplace=True)
 
 # Vérifier s'il y a encore des valeurs infinies
 df.replace([float("inf"), float("-inf")], df.median(numeric_only=True), inplace=True)
@@ -53,12 +57,12 @@ df = pd.get_dummies(df, columns=["body-style", "drive-wheels", "engine-location"
 X = df.drop(columns=["price"])
 y = df["price"]
 
-# Division en train/test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Normalisation des données
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-# Vérifier les valeurs nulles après la division
-X_train.dropna(inplace=True)
-y_train.dropna(inplace=True)
+# Division en train/test
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 st.write("✅ Données prêtes pour l'entraînement")
 
@@ -90,25 +94,28 @@ st.success(f"✅ **Modèle sélectionné : {'Random Forest' if best_model == rf 
 st.sidebar.header("🎯 Prédiction du prix d'une voiture")
 
 # Formulaire utilisateur
-wheel_base = st.sidebar.number_input("Empattement (wheel-base)", min_value=80.0, max_value=150.0, value=100.0)
-length = st.sidebar.number_input("Longueur (length)", min_value=140.0, max_value=220.0, value=180.0)
-width = st.sidebar.number_input("Largeur (width)", min_value=50.0, max_value=100.0, value=60.0)
-height = st.sidebar.number_input("Hauteur (height)", min_value=40.0, max_value=80.0, value=55.0)
-curb_weight = st.sidebar.number_input("Poids à vide (curb-weight)", min_value=500, max_value=5000, value=2500)
-engine_size = st.sidebar.number_input("Taille moteur (engine-size)", min_value=50, max_value=500, value=150)
+wheel_base = st.sidebar.slider("Empattement (wheel-base)", min_value=86.6, max_value=120.9, value=98.8)
+length = st.sidebar.slider("Longueur (length)", min_value=141.1, max_value=208.1, value=174.3)
+width = st.sidebar.slider("Largeur (width)", min_value=60.3, max_value=72.0, value=65.9)
+height = st.sidebar.slider("Hauteur (height)", min_value=47.8, max_value=59.8, value=53.8)
+curb_weight = st.sidebar.slider("Poids à vide (curb-weight)", min_value=1488, max_value=4066, value=2559)
+engine_size = st.sidebar.slider("Taille moteur (engine-size)", min_value=61, max_value=326, value=127)
+compression_ratio = st.sidebar.slider("Ratio de compression", min_value=7.0, max_value=23.0, value=10.2)
+city_mpg = st.sidebar.slider("Consommation en ville (city-mpg)", min_value=13, max_value=49, value=25)
+highway_mpg = st.sidebar.slider("Consommation sur autoroute (highway-mpg)", min_value=16, max_value=54, value=30)
 
 # Création du DataFrame pour la prédiction
-input_data = pd.DataFrame([[wheel_base, length, width, height, curb_weight, engine_size]],
-                          columns=["wheel-base", "length", "width", "height", "curb-weight", "engine-size"])
+input_data = pd.DataFrame([[wheel_base, length, width, height, curb_weight, engine_size, 
+                            compression_ratio, city_mpg, highway_mpg]],
+                          columns=["wheel-base", "length", "width", "height", "curb-weight", "engine-size", 
+                                   "compression-ratio", "city-mpg", "highway-mpg"])
 
-# Vérifier si les colonnes encodées sont dans le modèle
-missing_cols = [col for col in X.columns if col not in input_data.columns]
-for col in missing_cols:
-    input_data[col] = 0  # Ajouter des colonnes manquantes avec 0
+# Normalisation des données d'entrée
+input_data_scaled = scaler.transform(input_data)
 
 # Prédiction du prix
 if st.sidebar.button("🔍 Prédire le prix"):
-    prediction = best_model.predict(input_data)
+    prediction = best_model.predict(input_data_scaled)
     st.sidebar.success(f"💰 Prix estimé : {prediction[0]:,.2f} €")
 
 # === Footer ===
